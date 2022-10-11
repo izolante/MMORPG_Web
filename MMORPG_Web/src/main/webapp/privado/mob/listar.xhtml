@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">Manutenção de Mobs</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem" prependId="false">
+                <p:growl/>
+                <p:commandButton value="Novo" actionListener="#{controleMob.novo()}"
+                                 icon="pi pi-plus"
+                                 update="formEdicao"
+                                 process="@this"
+                                 oncomplete="PF('dlg').show();"/>
+                <div align="center">
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem: "/>
+                        <p:selectOneMenu value="#{controleMob.dao.ordemAtual}"
+                                         converter="#{controleMob.dao.converterOrdem}">
+                            <f:selectItems value="#{controleMob.dao.listaOrdem}"
+                                           var="ord" itemValue="#{ord.atributo}"/>
+                            <p:ajax update="listagem"/>
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro"/>
+                        <p:inputText value="#{controleMob.dao.filtro}">
+                            <p:ajax update="listagem" event="blur"/>
+                        </p:inputText>
+                        <p:commandButton value="Filtrar" update="listagem"/>
+                        <p:selectOneMenu value="#{controleMob.dao.maximoObjetos}">
+                            <f:selectItem itemLabel="4" itemValue="4"/>
+                            <f:selectItem itemLabel="8" itemValue="8"/>
+                            <f:selectItem itemLabel="10" itemValue="10"/>
+                            <f:selectItem itemLabel="50" itemValue="50"/>
+                            <f:selectItem itemLabel="100" itemValue="100"/>
+                            <p:ajax update="listagem"/>
+                        </p:selectOneMenu>
+                        <p:commandButton action="#{controleMob.dao.primeiro()}"
+                                         title="Primeiro" icon="pi pi-step-backward"
+                                         update="listagem"/>
+                        <p:commandButton action="#{controleMob.dao.anterior()}"
+                                         title="Anterior" icon="pi pi-chevron-left"
+                                         update="listagem"/>  
+                        <p:commandButton action="#{controleMob.dao.proximo()}"
+                                         title="Próximo" icon="pi pi-chevron-right"
+                                         update="listagem"/>       
+                        <p:commandButton action="#{controleMob.dao.ultimo()}"
+                                         title="Último" icon="pi pi-step-forward"
+                                         update="listagem"/>                                                 
+                    </p:panelGrid>
+                </div>                
+                <p:dataTable value="#{controleMob.dao.listaObjetos}" var="obj"
+                             id="listagem">
+                    <f:facet name="footer">
+                        <p:outputLabel value="#{controleMob.dao.mensagemNavegacao}"/>
+                    </f:facet>                    
+                    <p:column headerText="ID">
+                        <p:outputLabel value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Nome">
+                        <p:outputLabel value="#{obj.nome}"/>
+                    </p:column>        
+                    <p:column headerText="Local">
+                        <p:outputLabel value="#{obj.local.nome}"/>
+                    </p:column> 
+                    <p:column headerText="Nivel base">
+                        <p:outputLabel value="#{obj.nivelBase}"/>
+                    </p:column>
+                    <p:column headerText="Descrição">
+                        <p:outputLabel value="#{obj.descricao}"/>
+                    </p:column> 
+                    <p:column headerText="Ações">
+                        <div align="center">
+                            <p:commandButton
+                                actionListener="#{controleMob.alterar(obj.id)}"
+                                icon="pi pi-pencil" title="Editar"
+                                update="formEdicao" process="@this"
+                                oncomplete="PF('dlg').show();"/>
+                            <p:commandButton
+                                actionListener="#{controleMob.excluir(obj.id)}"
+                                icon="pi pi-trash" title="Excluir"
+                                update="@form" process="@this"
+                                onclick="if (!confirm('Confirma a exclusão?'))
+                                            return false"/>                                                                
+                        </div>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+            <p:dialog header="Edição" widgetVar="dlg" resizable="false"
+                      modal="true" width="50%" height="100%">
+                <h:form id="formEdicao" prependId="false">
+                    <p:growl id="growl"/>
+                    <div align="center">
+                        <p:panelGrid columns="2">
+                            <p:outputLabel value="ID"/>
+                            <p:inputText value="#{controleMob.objeto.id}"
+                                         size="5" readonly="true"/>
+                            <p:outputLabel value="Nome" for="txtNome"/>
+                            <p:inputText value="#{controleMob.objeto.nome}"
+                                         id="txtNome" size="50" maxlength="50"
+                                         placeholder="Obrigatório"/>
+                            <p:outputLabel value="Descricao" for="txtDescricao"/>
+                            <p:inputText value="#{controleMob.objeto.descricao}"
+                                         id="txtDescricao" size="50" maxlength="50"
+                                         placeholder="Obrigatório"/>
+                            <p:outputLabel value="Nivel base" for="txtNivelBase"/>
+                            <p:inputText value="#{controleMob.objeto.nivelBase}"
+                                         id="txtNivelBase" size="50" maxlength="50"
+                                         placeholder="Obrigatório"/>
+                            <p:outputLabel value="Local" for="selectLocal"/>
+                            <p:selectOneMenu value="#{controleMob.objeto.local}"
+                                             id="selectLocal">
+                                <f:selectItem itemLabel="Selecione um registro"
+                                              noSelectionOption="true"/>
+                                <f:converter binding="#{converterLocal}"/>
+                                <f:selectItems value="#{controleMob.daoLocal.listaTodos}"
+                                               var="est" itemLabel="#{est.nome}"/>
+                            </p:selectOneMenu>
+                        </p:panelGrid>
+                    </div>
+                    <p:panel>
+                        <div align="center">
+                            <p:commandButton value="Salvar" icon="pi pi-save"
+                                             actionListener="#{controleMob.salvar()}"
+                                             update="formEdicao formListagem"
+                                             oncomplete="if(!args.validationFailed){PF('dlg').hide();}"/>
+                        </div>
+                    </p:panel>
+                </h:form>
+            </p:dialog>
+        </ui:define>        
+    </ui:composition>
+</html>
